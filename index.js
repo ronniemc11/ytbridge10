@@ -70,3 +70,6 @@ app.get('/feeds/api/videos/:id', (req, res) => {
   res.type('application/atom+xml');
   res.send(xml);
 });
+app.get('/', (req, res) => {
+  res.send('YouTube GData v2.1.6 emulator is running.');
+});
