@@ -48,3 +48,25 @@ app.get('/feeds/api/videos', async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
+app.get('/feeds/api/videos/:id', (req, res) => {
+  const id = req.params.id;
+
+  const xml = `<?xml version="1.0" ?>
+<entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007">
+  <id>tag:youtube.com,2008:video:${id}</id>
+  <published>2009-10-25T07:00:00.000Z</published>
+  <updated>2025-06-05T00:00:00.000Z</updated>
+  <title>Example Video</title>
+  <content type="text">This is a test video served by your server.</content>
+  <author><name>TestChannel</name></author>
+  <media:group>
+    <media:title>Example Video</media:title>
+    <media:description>This is a test video served by your server.</media:description>
+    <media:player url="http://www.youtube.com/watch?v=${id}"/>
+  </media:group>
+  <yt:statistics viewCount="999999"/>
+</entry>`;
+
+  res.type('application/atom+xml');
+  res.send(xml);
+});
