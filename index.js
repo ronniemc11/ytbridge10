@@ -3,10 +3,15 @@ const axios = require('axios');
 const builder = require('xmlbuilder');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const API_KEY = 'AIzaSyDTLUeUIMRzIxIeYCy8tFxckv2qiVOGl3M';
 
+app.get('/', (req, res) => {
+  res.send('YouTube GData v2 emulator is running.');
+});
+
+// Search endpoint
 app.get('/feeds/api/videos', async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).send('Missing query');
@@ -23,18 +28,27 @@ app.get('/feeds/api/videos', async (req, res) => {
       thumbnail: item.snippet.thumbnails.default.url
     }));
 
-    const xml = builder.create('feed', { encoding: 'UTF-8' });
-    xml.att('xmlns', 'http://www.w3.org/2005/Atom');
+    const xml = builder.create('feed', { encoding: 'UTF-8' })
+      .att('xmlns', 'http://www.w3.org/2005/Atom')
+      .att('xmlns:media', 'http://search.yahoo.com/mrss/')
+      .att('xmlns:yt', 'http://gdata.youtube.com/schemas/2007');
 
     entries.forEach(entry => {
       const e = xml.ele('entry');
-      e.ele('id', entry.videoId);
+      e.ele('id', `tag:youtube.com,2008:video:${entry.videoId}`);
       e.ele('title', entry.title);
       e.ele('published', entry.published);
+      e.ele('updated', new Date().toISOString());
       e.ele('link', { rel: 'alternate', type: 'text/html', href: entry.link });
-      e.ele('media:group')
-        .ele('media:title', entry.title).up()
-        .ele('media:thumbnail', { url: entry.thumbnail });
+
+      const mediaGroup = e.ele('media:group');
+      mediaGroup.ele('media:title', entry.title);
+      mediaGroup.ele('media:thumbnail', { url: entry.thumbnail });
+      mediaGroup.ele('media:content', {
+        url: `http://www.youtube.com/v/${entry.videoId}`,
+        type: 'application/x-shockwave-flash',
+        medium: 'video'
+      });
     });
 
     res.set('Content-Type', 'application/atom+xml');
@@ -45,17 +59,17 @@ app.get('/feeds/api/videos', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+// Video info endpoint
 app.get('/feeds/api/videos/:id', (req, res) => {
   const id = req.params.id;
 
   const xml = `<?xml version="1.0" ?>
-<entry xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://gdata.youtube.com/schemas/2007">
+<entry xmlns="http://www.w3.org/2005/Atom"
+       xmlns:media="http://search.yahoo.com/mrss/"
+       xmlns:yt="http://gdata.youtube.com/schemas/2007">
   <id>tag:youtube.com,2008:video:${id}</id>
   <published>2009-10-25T07:00:00.000Z</published>
-  <updated>2025-06-05T00:00:00.000Z</updated>
+  <updated>${new Date().toISOString()}</updated>
   <title>Example Video</title>
   <content type="text">This is a test video served by your server.</content>
   <author><name>TestChannel</name></author>
@@ -63,6 +77,7 @@ app.get('/feeds/api/videos/:id', (req, res) => {
     <media:title>Example Video</media:title>
     <media:description>This is a test video served by your server.</media:description>
     <media:player url="http://www.youtube.com/watch?v=${id}"/>
+    <media:content url="http://www.youtube.com/v/${id}" type="application/x-shockwave-flash" medium="video"/>
   </media:group>
   <yt:statistics viewCount="999999"/>
 </entry>`;
@@ -70,14 +85,7 @@ app.get('/feeds/api/videos/:id', (req, res) => {
   res.type('application/atom+xml');
   res.send(xml);
 });
-app.get('/', (req, res) => {
-  res.send('YouTube GData v2.1.6 emulator is running.');
+
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
 });
-<entry xmlns="http://www.w3.org/2005/Atom">
-  <id>...</id>
-  <title>Video Title</title>
-  <media:group>
-    <media:content url="..." type="video/mp4" />
-    ...
-  </media:group>
-</entry>
