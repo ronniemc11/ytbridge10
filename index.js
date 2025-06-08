@@ -73,3 +73,11 @@ app.get('/feeds/api/videos/:id', (req, res) => {
 app.get('/', (req, res) => {
   res.send('YouTube GData v2.1.6 emulator is running.');
 });
+<entry xmlns="http://www.w3.org/2005/Atom">
+  <id>...</id>
+  <title>Video Title</title>
+  <media:group>
+    <media:content url="..." type="video/mp4" />
+    ...
+  </media:group>
+</entry>
