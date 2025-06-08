@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 const API_KEY = 'AIzaSyDTLUeUIMRzIxIeYCy8tFxckv2qiVOGl3M';
 
+// Home route
 app.get('/', (req, res) => {
   res.send('YouTube GData v2 emulator is running.');
 });
@@ -86,6 +87,13 @@ app.get('/feeds/api/videos/:id', (req, res) => {
   res.send(xml);
 });
 
+// Register device endpoint (dummy)
+app.get('/youtube/accounts/registerDevice', (req, res) => {
+  res.set('Content-Type', 'text/plain');
+  res.send('OK');
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
 });
